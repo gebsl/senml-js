@@ -1,0 +1,37 @@
+{
+  "name": "senml-js",
+  "version": "1.0.0",
+  "description": "SenML library written in JavaScript",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write \"src/*.ts\"",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marcotuna/senml-js.git"
+  },
+  "keywords": [
+    "senml",
+    "node",
+    "javascript",
+    "iot"
+  ],
+  "author": "Marco Santos",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/marcotuna/senml-js/issues"
+  },
+  "homepage": "https://github.com/marcotuna/senml-js#readme",
+  "devDependencies": {
+    "@types/chai": "^4.2.11",
+    "@types/mocha": "^7.0.2",
+    "chai": "^4.2.0",
+    "mocha": "^7.1.2",
+    "prettier": "^2.0.5",
+    "ts-node": "^8.10.1",
+    "typescript": "^3.9.2"
+  }
+}
