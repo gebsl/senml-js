@@ -1,31 +1,47 @@
-const ErrVersionChange = { name: 'ErrVersionChange', message: 'version change' }
-const ErrUnsuportedFormat = { name: 'ErrUnsupportedFormat', message: 'unsupported format' }
-const ErrEmptyName = { name: 'ErrEmptyName', message: 'empty name' }
-const ErrTooManyValues = { name: 'ErrTooManyValues', message: 'more than one value in the record' }
-const ErrNoValues = { name: 'ErrNoValues', message: 'no value or sum field found' }
-const ErrBadChar = { name: 'ErrBadChar', message: 'invalid char' }
+export const ErrVersionChange = { name: 'ErrVersionChange', message: 'version change' }
+export const ErrUnsuportedFormat = { name: 'ErrUnsupportedFormat', message: 'unsupported format' }
+export const ErrEmptyName = { name: 'ErrEmptyName', message: 'empty name' }
+export const ErrTooManyValues = { name: 'ErrTooManyValues', message: 'more than one value in the record' }
+export const ErrNoValues = { name: 'ErrNoValues', message: 'no value or sum field found' }
+export const ErrBadChar = { name: 'ErrBadChar', message: 'invalid char' }
 
 const defaultVersion = 10
 
 // Record represents one senML record.
-export interface SenMLRecord {
-  XMLName?: boolean;
-  Link?: string;
-  BaseName?: string;
-  BaseTime?: number;
-  BaseUnit?: string;
-  BaseVersion?: number;
-  BaseValue?: number;
-  BaseSum?: number;
-  Name: string;
-  Unit?: string;
-  Time?: number;
-  UpdateTime?: number;
-  Value: number;
-  StringValue?: string;
-  DataValue?: string;
-  BoolValue?: boolean;
-  Sum?: number;
+export interface Record {
+  /** Link */
+  l?: string;
+  /** BaseName */
+  bn?: string;
+  /** BaseTime */
+  bt?: number;
+  /** BaseUnit */
+  bu?: string;
+  /** BaseVersion */
+  bver?: number;
+  /** BaseValue */
+  bv?: number;
+  /** BaseSum */
+  bs?: number;
+  /** Name */
+  n?: string;
+  /** Unit */
+  u?: string;
+  /** Time */
+  t?: number;
+  /** Update Time */
+  ut?: number;
+  /** Value */
+  v?: number;
+  /** StringValue */
+  vs?: string;
+  /** DataValue */
+  vd?: string;
+  /** BoolValue */
+  vb?: boolean;
+  /** Sum */
+  s?: number;
+  // XMLName?: boolean;
 }
 
 enum Format {
@@ -38,11 +54,11 @@ enum Format {
 export interface Pack {
   XMLName?: boolean;
   Xmlns?: string;
-  Records: SenMLRecord[];
+  Records: Record[];
 }
 
 // Encode takes a SenML Pack and encodes it using the given format.
-export function Decode (msg: string, format: Format): Pack | Error {
+export function Decode(msg: string, format: Format): Pack | Error {
   let p: Pack
   switch (format) {
     case Format.JSON:
@@ -59,7 +75,7 @@ export function Decode (msg: string, format: Format): Pack | Error {
 }
 
 // Encode takes a SenML Pack and encodes it using the given format.
-export function Encode (p: Pack, format: Format): string | Error {
+export function Encode(p: Pack, format: Format): string | Error {
   switch (format) {
     case Format.JSON:
       return JSON.stringify(p)
@@ -71,46 +87,46 @@ export function Encode (p: Pack, format: Format): string | Error {
 // Normalize removes all the base values and expands records values with the base items.
 // The base fields apply to the entries in the Record and also to all Records after
 // it up to, but not including, the next Record that has that same base field.
-export function Normalize (p: Pack): Pack | Error {
+export function Normalize(p: Pack): Pack | Error {
   const err = Validate(p)
   if (err !== null) {
     return err
   }
 
-  let bname: string | undefined = ''
+  let bname = ''
   let btime: number | undefined = 0
   let bsum: number | undefined = 0
   let bunit: string | undefined = ''
 
-  const records: Array<SenMLRecord> = []
+  const records: Array<Record> = []
 
-  p.Records.forEach(function (r) {
-    if (r.BaseTime !== 0) btime = r.BaseTime
-    if (r.BaseSum !== 0) bsum = r.BaseSum
-    if (r.BaseUnit !== '') bunit = r.BaseUnit
-    if (r.BaseName && r.BaseName.length > 0) bname = r.BaseName
-    if (r.Time && btime) r.Time = r.Time + btime
+  for (const r of p.Records) {
+    if (r.bt && r.bt !== 0) btime = r.bt
+    if (r.bs && r.bs !== 0) bsum = r.bs
+    if (r.bu && r.bu !== '') bunit = r.bu
+    if (r.bn && r.bn.length > 0) bname = r.bn
+    if (r.t && btime) r.t = r.t + btime
 
-    r.Name = bname + r.Name
+    r.n = bname + r.n
 
-    if (r.Sum && bsum) r.Sum = bsum + r.Sum
-    if (r.Unit === '' && bunit) r.Unit = bunit
-    if (r.Value && (r.BaseValue && r.BaseValue !== 0)) r.Value = r.BaseValue + r.Value
+    if (r.s && bsum) r.s = bsum + r.s
+    if ((!r.u || r.u === '') && bunit) r.u = bunit
+    if (r.v && (r.bv && r.bv !== 0)) r.v = r.bv + r.v
 
     // If the version is default, it must not be present in resolved records.
     // Validate method takes care that the version is the same on all the records.
-    if (r.BaseVersion === defaultVersion) r.BaseVersion = 0
+    if (r.bv === defaultVersion) r.bv = 0
 
     // Remove Base Values from the Record.
-    r.BaseTime = 0
-    r.BaseValue = 0
-    r.BaseUnit = ''
-    r.BaseName = ''
-    r.BaseSum = 0
+    r.bt = 0
+    r.bv = 0
+    r.bu = ''
+    r.bn = ''
+    r.bs = 0
 
     // Add to the SenML array
     records.push(r)
-  })
+  }
 
   p.Records = records
 
@@ -120,44 +136,44 @@ export function Normalize (p: Pack): Pack | Error {
 }
 
 // Validate validates SenML records.
-export function Validate (p: Pack): Error | null {
-  let bver: number | undefined = 0
-  let bname: string | undefined = ''
-  let bsum: number | undefined = 0
+export function Validate(p: Pack): Error | null {
+  let bver = 0
+  let bname = ''
+  let bsum = 0
 
-  p.Records.forEach(function (r) {
+  for (const r of p.Records) {
     // Check if version is the same for all the records.
-    if (bver === 0 && r.BaseVersion !== 0) {
-      bver = r.BaseVersion
+    if ((!bver || bver === 0) && (r.bv && r.bv !== 0)) {
+      bver = r.bv
     }
-    if (bver !== 0 && r.BaseVersion === 0) r.BaseVersion = bver
-    if (r.BaseVersion !== bver) return ErrVersionChange
+    if (bver !== 0 && (!r.bv || r.bv === 0)) r.bv = bver
+    if (r.bv !== bver) return ErrVersionChange
 
-    if (r.BaseName !== '') bname = r.BaseName
-    if (r.BaseSum !== 0) bsum = r.BaseSum
+    if (r.bn && r.bn !== '') bname = r.bn
+    if (r.bs && r.bs !== 0) bsum = r.bs
 
-    const name = bname + r.Name
+    const name = bname + r.n
     if (name.length === 0) return ErrEmptyName
 
     let valCnt = 0
-    if (r.Value != null) valCnt++
-    if (r.BoolValue != null) valCnt++
-    if (r.DataValue != null) valCnt++
-    if (r.StringValue != null) valCnt++
+    if (r.v) valCnt++
+    if (r.vb) valCnt++
+    if (r.vd) valCnt++
+    if (r.vs) valCnt++
 
     if (valCnt > 1) return ErrTooManyValues
-    if (r.Sum != null || bsum !== 0) valCnt++
+    if (r.s || bsum !== 0) valCnt++
     if (valCnt < 1) return ErrNoValues
 
     const err = validateName(name)
     if (err != null) {
       return err
     }
-  })
+  }
   return null
 }
 
-function validateName (name: string): Error | null {
+function validateName(name: string): Error | null {
   const l = name[0]
   if (l === '-' || l === ':' || l === '.' || l === '/' || l === '_') {
     return ErrBadChar
