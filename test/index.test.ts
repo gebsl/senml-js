@@ -1,4 +1,5 @@
-import { Pack, Validate, Normalize, ErrEmptyName, ErrBadChar, ErrNoValues, ErrTooManyValues, ErrVersionChange } from '../src/index'
+import { Pack, Decode, Encode, Validate, Normalize, Format, ErrEmptyName, ErrBadChar, ErrNoValues, ErrTooManyValues, ErrVersionChange } from '../src/index'
+import { fromHex } from '../src/utils'
 import { describe, it } from 'mocha'
 
 import { expect } from 'chai'
@@ -7,17 +8,18 @@ import { expect } from 'chai'
 const value = 42.0
 const sum = 10.0
 const boolV = true
+const jsonEncoded = "5b7b22626e223a22626173652d6e616d65222c226274223a3130302c226275223a22626173652d756e6974222c2262766572223a31312c226276223a33342c226273223a3130302c226e223a226e616d65222c2275223a22756e6974222c2274223a3135302c227574223a3330302c2276223a34322c2273223a31307d2c7b22626e223a22626173652d6e616d65222c226274223a3130302c226275223a22626173652d756e6974222c2262766572223a31312c226273223a3130302c226e223a226e616d652d31222c2275223a22756e6974222c2274223a3135302c227574223a3330302c227662223a747275652c2273223a31307d5d"
 
 function pack(): Pack {
   return {
     Records: [
       {
-        bn: "bananas-name",
+        bn: "base-name",
         bt: 100,
-        bu: "bananas-unit",
+        bu: "base-unit",
         bver: 11,
-        bs: 100,
         bv: 34,
+        bs: 100,
         n: "name",
         u: "unit",
         t: 150,
@@ -26,12 +28,12 @@ function pack(): Pack {
         s: sum,
       },
       {
-        bn: "coconut-name",
+        bn: "base-name",
         bt: 100,
-        bu: "coconut-unit",
+        bu: "base-unit",
         bver: 11,
         bs: 100,
-        n: "coconut-name-1",
+        n: "name-1",
         u: "unit",
         t: 150,
         ut: 300,
@@ -42,11 +44,21 @@ function pack(): Pack {
   }
 }
 
-// describe('Decode SenML record', () => {
-//   it('should be able to encode JSON successfully', () => {
-//     expect(Decode()).to.equal(null)
-//   })
-// })
+describe('Decode SenML record', () => {
+  const jsnVal = fromHex(jsonEncoded)
+
+  it('should be able to decode JSON successfully', () => {
+    expect(Decode(jsnVal, Format.JSON)).to.eql(pack())
+  })
+})
+
+describe('Encode SenML record', () => {
+  const jsnVal = fromHex(jsonEncoded)
+
+  it('should be able to encode JSON successfully', () => {
+    expect(Encode(pack(), Format.JSON)).to.equal(jsnVal)
+  })
+})
 
 describe('Validate SenML record', () => {
 
@@ -70,10 +82,10 @@ describe('Validate SenML record', () => {
   noValue.Records[0].s = undefined
 
   const validVersion = pack()
-  validVersion.Records[1].bv = 0
+  validVersion.Records[1].bver = 0
 
   const multiVersion = pack()
-  multiVersion.Records[1].bv = 3
+  multiVersion.Records[1].bver = 3
 
   it('should be able to validate record', () => {
     expect(Validate(pack())).to.equal(null)

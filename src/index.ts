@@ -44,7 +44,7 @@ export interface Record {
   // XMLName?: boolean;
 }
 
-enum Format {
+export enum Format {
   JSON = 1,
   XML,
   CBOR,
@@ -59,17 +59,19 @@ export interface Pack {
 
 // Encode takes a SenML Pack and encodes it using the given format.
 export function Decode(msg: string, format: Format): Pack | Error {
-  let p: Pack
+  const p: Pack = { Records: []}
   switch (format) {
     case Format.JSON:
-      p = JSON.parse(msg)
+      p.Records = JSON.parse(msg)
       break
     default:
       return ErrUnsuportedFormat
   }
 
   const err = Validate(p)
-  if (err !== null) return err
+  if (err !== null) {
+    return err
+  }
 
   return p
 }
@@ -78,7 +80,7 @@ export function Decode(msg: string, format: Format): Pack | Error {
 export function Encode(p: Pack, format: Format): string | Error {
   switch (format) {
     case Format.JSON:
-      return JSON.stringify(p)
+      return JSON.stringify(p.Records)
     default:
       return ErrUnsuportedFormat
   }
@@ -137,18 +139,18 @@ export function Normalize(p: Pack): Pack | Error {
 
 // Validate validates SenML records.
 export function Validate(p: Pack): Error | null {
-  let bver = 0
+  let bver: number | undefined = 0
   let bname = ''
   let bsum = 0
 
   for (const r of p.Records) {
     // Check if version is the same for all the records.
-    if ((!bver || bver === 0) && (r.bv && r.bv !== 0)) {
-      bver = r.bv
+    if ((!bver || bver === 0) && (r.bver && r.bver !== 0)) {
+      bver = r.bver
     }
-    if (bver !== 0 && (!r.bv || r.bv === 0)) r.bv = bver
-    if (r.bv !== bver) return ErrVersionChange
-
+    if (bver !== 0 && (!r.bver || r.bver === 0)) r.bver = bver
+    if (r.bver !== bver) return ErrVersionChange
+    
     if (r.bn && r.bn !== '') bname = r.bn
     if (r.bs && r.bs !== 0) bsum = r.bs
 
