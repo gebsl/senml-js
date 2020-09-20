@@ -12,9 +12,9 @@ function pack(): Pack {
   return {
     Records: [
       {
-        bn: "base-name",
+        bn: "bananas-name",
         bt: 100,
-        bu: "base-unit",
+        bu: "bananas-unit",
         bver: 11,
         bs: 100,
         bv: 34,
@@ -26,12 +26,12 @@ function pack(): Pack {
         s: sum,
       },
       {
-        bn: "base-name",
+        bn: "coconut-name",
         bt: 100,
-        bu: "base-unit",
+        bu: "coconut-unit",
         bver: 11,
         bs: 100,
-        n: "name-1",
+        n: "coconut-name-1",
         u: "unit",
         t: 150,
         ut: 300,
@@ -112,7 +112,7 @@ describe('Normalize SenML record', () => {
 
   const p = pack()
   if (p.Records[1].t) p.Records[1].t -= 10
-  if (p.Records[1].u) p.Records[1].u = ""
+  if (p.Records[0].u) p.Records[0].u = ""
 
   const norm = pack()
 
@@ -132,7 +132,7 @@ describe('Normalize SenML record', () => {
 
   r1.n = (r1.bn || '') + (r1.n || '')
   r1.bn = ''
-  r1.t = (r1.bt || 0) + (r1.t || 0)
+  r1.t = (r1.bt || 0) + (r1.t || 0) - 10
   r1.bt = 0
   r1.bv = 0
   r1.bu = ''
@@ -149,9 +149,9 @@ describe('Normalize SenML record', () => {
   emptyName.Records[0].bn = ""
   emptyName.Records[0].n = ""
 
-  // it('should be able to normalize senML record', () => {
-  //   expect(Normalize(p)).to.equal(norm)
-  // })
+  it('should be able to normalize senML record', () => {
+    expect(Normalize(p)).to.eql(norm)
+  })
 
   it('should be able to normalize senML record with error', () => {
     expect(Normalize(emptyName)).to.equal(ErrEmptyName)
