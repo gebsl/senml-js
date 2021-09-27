@@ -148,8 +148,12 @@ export function Validate(p: Pack): Error | null {
     if ((!bver || bver === 0) && r.bver && r.bver !== 0) {
       bver = r.bver;
     }
-    if (bver !== 0 && (!r.bver || r.bver === 0)) r.bver = bver;
-    if (r.bver !== bver) return ErrVersionChange;
+    if (bver !== 0 && (!r.bver || r.bver === 0)) {
+      r.bver = bver;
+    }
+    if (r.bver && r.bver !== bver) {
+      return ErrVersionChange;
+    }
 
     if (r.bn && r.bn !== '') bname = r.bn;
     if (r.bs && r.bs !== 0) bsum = r.bs;
