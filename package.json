@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/marcotuna/senml-js.git"
+    "url": "git+https://github.com/glartek/senml-js.git"
   },
   "keywords": [
     "senml",
@@ -29,9 +29,9 @@
   "author": "Marco Santos",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/marcotuna/senml-js/issues"
+    "url": "https://github.com/glartek/senml-js/issues"
   },
-  "homepage": "https://github.com/marcotuna/senml-js#readme",
+  "homepage": "https://github.com/glartek/senml-js#readme",
   "devDependencies": {
     "@types/node": "^14.17.19",
     "@types/chai": "^4.2.22",
