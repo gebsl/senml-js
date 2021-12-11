@@ -3,6 +3,8 @@
 SenML library written in JavaScript  
 This is based on the mainflux/senml(https://github.com/mainflux/senml)  
 
+Available for installation in the npm repository https://www.npmjs.com/package/senml-js
+
 Currently only **JSON** is supported  
 
 ## Installation
