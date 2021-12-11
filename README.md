@@ -10,9 +10,9 @@ Currently only **JSON** is supported
 ## Installation
 
 ```
-$ npm install --save @glartek/senml
-$ yarn add @glartek/senml
-$ pnpm add @glartek/senml
+$ npm install --save senml-js
+$ yarn add senml-js
+$ pnpm add senml-js
 ```
 
 ## Contributing
