@@ -12,6 +12,7 @@ import {
   ErrTooManyValues,
   ErrVersionChange,
   ErrUnsuportedFormat,
+  NormalizedRecord,
 } from '../src/index';
 import { fromHex } from '../src/utils';
 import { describe, it } from 'mocha';
@@ -24,7 +25,7 @@ const boolV = true;
 const jsonEncoded =
   '5b7b22626e223a22626173652d6e616d65222c226274223a3130302c226275223a22626173652d756e6974222c2262766572223a31312c226276223a33342c226273223a3130302c226e223a226e616d65222c2275223a22756e6974222c2274223a3135302c227574223a3330302c2276223a34322c2273223a31307d2c7b22626e223a22626173652d6e616d65222c226274223a3130302c226275223a22626173652d756e6974222c2262766572223a31312c226273223a3130302c226e223a226e616d652d31222c2275223a22756e6974222c2274223a3135302c227574223a3330302c227662223a747275652c2273223a31307d5d';
 
-function pack(): Pack {
+function pack(): Pack<Record> {
   return {
     Records: [
       {
@@ -155,28 +156,31 @@ describe('Normalize SenML record', () => {
 
   const norm = pack();
 
-  const r0 = norm.Records[0];
-  const r1 = norm.Records[1];
+  // create shallow copy to not alter the original objects
+  const r0 = { ...norm.Records[0] };
+  const r1 = { ...norm.Records[1] };
 
   r0.n = (r0.bn || '') + (r0.n || '');
-  r0.bn = '';
+  delete r0.bn;
   r0.t = (r0.bt || 0) + (r0.t || 0);
-  r0.bt = 0;
+  delete r0.bt;
   r0.v = (r0.v || 0) + (r0.bv || 0);
-  r0.bv = 0;
+  delete r0.bv;
   r0.u = r0.bu;
-  r0.bu = '';
+  delete r0.bu;
   r0.s = (r0.bs || 0) + (r0.s || 0);
-  r0.bs = 0;
+  delete r0.bs;
+  delete r0.bver;
 
   r1.n = (r1.bn || '') + (r1.n || '');
-  r1.bn = '';
+  delete r1.bn;
   r1.t = (r1.bt || 0) + (r1.t || 0) - 10;
-  r1.bt = 0;
-  r1.bv = 0;
-  r1.bu = '';
+  delete r1.bt;
+  delete r1.bv;
+  delete r1.bu;
   r1.s = (r1.bs || 0) + (r1.s || 0);
-  r1.bs = 0;
+  delete r1.bs;
+  delete r1.bver;
 
   norm.Records = [
     {
@@ -227,51 +231,31 @@ describe('Normalize SenML record', () => {
         }
       ];
 
-    const expected: Record[] =
+    const expected: NormalizedRecord[] =
       [
         {
-          bn: '',
-          bt: 0,
           n: 'urn:dev:mac:d6ea13fffff5113b:batt',
           u: '%EL',
           v: 0,
           t: 1677102089,
-          bv: 0,
-          bu: '',
-          bs: 0
         },
         {
           n: 'urn:dev:mac:d6ea13fffff5113b:n1',
           vb: false,
           t: 1677102089,
           u: 'unit',
-          bt: 0,
-          bv: 0,
-          bu: '',
-          bn: '',
-          bs: 0
         },
         {
           n: 'urn:dev:mac:d6ea13fffff5113b:n2',
           t: 1677102089,
           u: 'unit',
           vd: '',
-          bt: 0,
-          bv: 0,
-          bu: '',
-          bn: '',
-          bs: 0
         },
         {
           n: 'urn:dev:mac:d6ea13fffff5113b:n3',
           t: 1677102089,
           u: 'unit',
           vs: '',
-          bt: 0,
-          bv: 0,
-          bu: '',
-          bn: '',
-          bs: 0
         }
       ];
 
@@ -282,7 +266,7 @@ describe('Normalize SenML record', () => {
 describe('rfc8428', () => {
   // TODO: should we maybe include the whole example 5.1.3 from rfc8428 here?
   it('normalizes example 5.1.3 correctly', () => {
-    const input =
+    const input: Record[] =
       [
         {
           "bn": "urn:dev:ow:10e2073a01080063",
@@ -300,36 +284,21 @@ describe('rfc8428', () => {
         },
       ];
 
-    const expected: Record[] =
+    const expected: NormalizedRecord[] =
       [
         {
-          "bn": "",
-          "bs": 0,
-          "bt": 0,
-          "bu": "",
-          "bv": 0,
           "n": "urn:dev:ow:10e2073a01080063",
           "u": "%RH",
           "t": 1.320067464e+09,
           "v": 20
         },
         {
-          "bn": "",
-          "bs": 0,
-          "bt": 0,
-          "bu": "",
-          "bv": 0,
           "n": "urn:dev:ow:10e2073a01080063",
           "u": "lon",
           "t": 1.320067464e+09,
           "v": 24.30621
         },
         {
-          "bn": "",
-          "bs": 0,
-          "bt": 0,
-          "bu": "",
-          "bv": 0,
           "n": "urn:dev:ow:10e2073a01080063",
           "u": "%RH",
           "t": 1.320067524e+09,

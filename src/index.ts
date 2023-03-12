@@ -9,22 +9,10 @@ export const ErrBadChar = { name: 'ErrBadChar', message: 'invalid char' };
 
 const defaultVersion = 10;
 
-// Record represents one senML record.
-export interface Record {
+// Record represents one normalized senML record.
+export interface NormalizedRecord {
   /** Link */
   l?: string;
-  /** BaseName */
-  bn?: string;
-  /** BaseTime */
-  bt?: number;
-  /** BaseUnit */
-  bu?: string;
-  /** BaseVersion */
-  bver?: number;
-  /** BaseValue */
-  bv?: number;
-  /** BaseSum */
-  bs?: number;
   /** Name */
   n?: string;
   /** Unit */
@@ -46,6 +34,23 @@ export interface Record {
   // XMLName?: boolean;
 }
 
+
+// Record represents one senML record.
+export interface Record extends NormalizedRecord {
+  /** BaseName */
+  bn?: string;
+  /** BaseTime */
+  bt?: number;
+  /** BaseUnit */
+  bu?: string;
+  /** BaseVersion */
+  bver?: number;
+  /** BaseValue */
+  bv?: number;
+  /** BaseSum */
+  bs?: number;
+}
+
 export enum Format {
   JSON = 1,
   XML,
@@ -53,15 +58,15 @@ export enum Format {
 }
 
 // Pack consists of SenML records array.
-export interface Pack {
+export interface Pack<T extends NormalizedRecord> {
   XMLName?: boolean;
   Xmlns?: string;
-  Records: Record[];
+  Records: T[];
 }
 
 // Encode takes a SenML Pack and encodes it using the given format.
-export function Decode(msg: string, format: Format): Pack | Error {
-  const p: Pack = { Records: [] };
+export function Decode(msg: string, format: Format): Pack<Record> | Error {
+  const p: Pack<Record> = { Records: [] };
   switch (format) {
     case Format.JSON:
       p.Records = JSON.parse(msg);
@@ -79,7 +84,7 @@ export function Decode(msg: string, format: Format): Pack | Error {
 }
 
 // Encode takes a SenML Pack and encodes it using the given format.
-export function Encode(p: Pack, format: Format): string | Error {
+export function Encode(p: Pack<Record>, format: Format): string | Error {
   switch (format) {
     case Format.JSON:
       return JSON.stringify(p.Records);
@@ -91,7 +96,7 @@ export function Encode(p: Pack, format: Format): string | Error {
 // Normalize removes all the base values and expands records values with the base items.
 // The base fields apply to the entries in the Record and also to all Records after
 // it up to, but not including, the next Record that has that same base field.
-export function Normalize(p: Pack): Pack | Error {
+export function Normalize(p: Pack<Record>): Pack<NormalizedRecord> | Error {
   const err = Validate(p);
   if (err !== null) {
     return err;
@@ -102,14 +107,14 @@ export function Normalize(p: Pack): Pack | Error {
   let bsum: number | undefined = 0;
   let bunit: string | undefined = '';
 
-  const records: Array<Record> = [];
+  const records: Array<NormalizedRecord> = [];
 
   for (const r of p.Records) {
     if (r.bt && r.bt !== 0) btime = r.bt;
     if (r.bs && r.bs !== 0) bsum = r.bs;
     if (r.bu && r.bu !== '') bunit = r.bu;
     if (r.bn && r.bn.length > 0) bname = r.bn;
-    
+
     r.t = (r.t !== undefined && r.t !== null ? r.t : 0) + btime;
     r.n = bname + (r.n !== undefined && r.n !== null ? r.n : '');
 
@@ -122,11 +127,12 @@ export function Normalize(p: Pack): Pack | Error {
     if (r.bv === defaultVersion) r.bv = 0;
 
     // Remove Base Values from the Record.
-    r.bt = 0;
-    r.bv = 0;
-    r.bu = '';
-    r.bn = '';
-    r.bs = 0;
+    delete r.bn;
+    delete r.bt;
+    delete r.bu;
+    delete r.bv;
+    delete r.bs;
+    delete r.bver;
 
     // Add to the SenML array
     records.push(r);
@@ -140,7 +146,7 @@ export function Normalize(p: Pack): Pack | Error {
 }
 
 // Validate validates SenML records.
-export function Validate(p: Pack): Error | null {
+export function Validate(p: Pack<Record>): Error | null {
   let bver: number | undefined = 0;
   let bname = '';
   let bsum = 0;
